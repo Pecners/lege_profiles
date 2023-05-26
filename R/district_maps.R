@@ -1,4 +1,8 @@
 library(tigris)
+library(tidyverse)
+library(sf)
+library(cityforwardcollective)
+library(glue)
 
 wi <- counties(state = "WI") %>%
   st_transform(., crs = st_crs(4326))
@@ -18,14 +22,11 @@ dist |>
   geom_sf(fill = cfc_darkblue, color = NA) +
   theme_void()
 
-ggsave(filename = "../../000_data_temp/jagler_district.png", background = "none")
+ggsave(filename = "../000_data_temp/jagler_district.png", background = "none")
 
 sens <- c(
-  "Jagler",
-  "Stroebel",
-  "LeMahieu",
-  "Marklein",
-  "Ballweg"
+  "Vos",
+  "August"
 )
 
 walk(sens, function(s) {
@@ -38,7 +39,7 @@ walk(sens, function(s) {
     geom_sf(fill = cfc_darkblue, color = NA) +
     theme_void()
   
-  ggsave(filename = glue("../../000_data_temp/{s}_district.png"), 
+  ggsave(filename = glue("../000_data_temp/{s}_district.png"), 
          background = "none")
   
 })
