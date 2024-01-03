@@ -5,9 +5,9 @@ mainfont: Verdana
 sansfont: Georgia
 toc: true
 params:
-  district: 22
-  representative: "Robert Wirch"
-  honorific: "Senator"
+  district: 84
+  representative: "Bob Donovan"
+  honorific: "Representative"
 knitr:
   opts_chunk: 
     R.options:
@@ -37,6 +37,8 @@ library(showtext)
 library(quarto)
 library(glue)
 library(ggtext)
+library(mapboxapi)
+library(leaflet)
 
 
 font_add("Georgia", "/Library/Fonts/Georgia.ttf")
@@ -45,11 +47,12 @@ showtext_auto()
 
 rac <- read_rds("../data/rac_cl.rda")
 
-prof <- read_rds("../data/wi_all_school_prof.rda")
+prof <- read_rds("../../000_data_temp/wi_all_school_prof_2023.rda")
 
 leges_sf <- read_rds("../data/leges_with_sf_2023.rda")
 
 wip10 <- read_rds("../data/wi_10_cities.rda")
+mke <- st_read("../../shapefiles/Milwaukee/City Limits/citylimit.shp")
 
 # see R/fix_bad_ids.R for source of data object
 geo_schools <- read_rds("../data/geocoded_wi_schools_fixed.rda") %>%
@@ -64,7 +67,7 @@ geo_schools <- read_rds("../data/geocoded_wi_schools_fixed.rda") %>%
               select(dpi_true_id, school_name, 
                      broad_agency_type, accurate_agency_type)) %>%
   left_join(., make_wi_rc(exclude_milwaukee = FALSE) %>%
-              filter(school_year == "2021-22") %>%
+              filter(school_year == "2022-23") %>%
               select(-c(school_year, school_name,
                         broad_agency_type, accurate_agency_type,
                         school_type))) %>%
@@ -165,7 +168,10 @@ make_data <- function(district) {
 
 \vspace{.25in}
 
-```{r fig.align='center', fig.height=6.5}
+```{r}
+#| dev: png
+#| fig-cap: District shown in blue, Milwaukee city limits shown in orange.
+
 if (params$honorific == "Representative") {
   dist <- leges_sf |> 
     filter(house == "Assembly" & district == params$district)
@@ -174,29 +180,39 @@ if (params$honorific == "Representative") {
     filter(house == "Senate" & district == params$district)
 }
 
-dist |> 
-  ggplot() +
-  geom_sf(fill = "grey95", color = NA) +
-  geom_sf(data = dist,
-          fill = cfc_darkblue, color = NA) +
-  geom_sf(data = rac, color = cfc_orange, linewidth = .5, fill = NA) +
-  # geom_sf_text(data = leges_sf |> filter(district == params$district),
-  #              aes(label = district), size = 4) +
-  # geom_sf(data = city_limits, fill = NA, color = "red", size = .1) +
-  scale_alpha_identity() +
-  scale_color_identity() +
-  theme_void() +
-  theme(plot.title = element_text(family = "Georgia", hjust = .5,
-                                  margin = margin(20, 0,0,0)),
-        plot.title.position = "plot",
-        plot.subtitle = element_markdown(color = "grey50", hjust = .5),
-        text = element_text(family = "Verdana", size = 12),
-        plot.caption = element_text(hjust = .5, color = "grey50",
-                                    margin = margin(b = 5), size = 8)) +
-  labs(title = glue("{params$honorific} {params$representative}"),
-       subtitle = glue("Racine city limits in ",
-                       "<span style='color:{cfc_orange}'>orange</span>"),
-       caption = "District boundaries reflect 2022 Districts")
+
+leaflet(dist) |> 
+  addMapboxTiles(style_id = "light-v11",
+                 username = "mapbox", scaling_factor = "0.5x") |> 
+  addPolygons(weight = 2) |> 
+  addPolygons(data = st_transform(mke, crs = st_crs(dist)),
+              color = cfc_orange, fillOpacity = .1,
+              weight = 2) |> 
+  fitBounds(-88.1, 42.925, -87.9, 43.15)
+
+# dist |> 
+#   ggplot() +
+#   geom_sf(fill = "grey95", color = NA) +
+#   geom_sf(data = dist,
+#           fill = cfc_darkblue, color = NA) +
+#   geom_sf(data = rac, color = cfc_orange, linewidth = .5, fill = NA) +
+#   # geom_sf_text(data = leges_sf |> filter(district == params$district),
+#   #              aes(label = district), size = 4) +
+#   # geom_sf(data = city_limits, fill = NA, color = "red", size = .1) +
+#   scale_alpha_identity() +
+#   scale_color_identity() +
+#   theme_void() +
+#   theme(plot.title = element_text(family = "Georgia", hjust = .5,
+#                                   margin = margin(20, 0,0,0)),
+#         plot.title.position = "plot",
+#         plot.subtitle = element_markdown(color = "grey50", hjust = .5),
+#         text = element_text(family = "Verdana", size = 12),
+#         plot.caption = element_text(hjust = .5, color = "grey50",
+#                                     margin = margin(b = 5), size = 8)) +
+#   labs(title = glue("{params$honorific} {params$representative}"),
+#        subtitle = glue("Racine city limits in ",
+#                        "<span style='color:{cfc_orange}'>orange</span>"),
+#        caption = "District boundaries reflect 2022 Districts")
 
 ```
 
@@ -328,7 +344,7 @@ enr_by_rc <- c$c |>
   coord_cartesian(clip = "off") +
   labs(title = "Enrollment by Report Card Rating",
        y = "Enrollment (2022-23 School Year)",
-       x = "Report Card Rating (2021-22 School Year)") +
+       x = "Report Card Rating (2022-23 School Year)") +
   theme(legend.position = "none",
         panel.grid.minor = element_blank(),
         panel.grid.major.x = element_blank(),
@@ -352,7 +368,7 @@ enr_by_quality <- c$c |>
   coord_cartesian(clip = "off") +
   labs(title = "Enrollment by School Quality",
        y = "Enrollment (2022-23 School Year)",
-       x = "Report Card Rating (2021-22 School Year)",
+       x = "Report Card Rating (2022-23 School Year)",
        caption = "Schools with no rating excluded here.") +
   theme(legend.position = "none",
         panel.grid.minor = element_blank(),
@@ -387,6 +403,8 @@ enr_by_quality
 \renewcommand{\arraystretch}{1.5}
 
 ```{r}
+#| fig-cap: Milwaukee schools denoted with *.
+#| 
 
 t <- c$clean_rated |> 
   # left_join(enrollment |> 
@@ -395,16 +413,23 @@ t <- c$clean_rated |>
   #                    school_enrollment = student_count)) |> 
   select(dpi_true_id,
          school_name,
-         organisation_type,
+         accurate_agency_type,
          grade_band,
          clean_enr_20_21,
          overall_rating,
-         overall_score) |> 
-  arrange(school_name)
+         overall_score,
+         sch_ach,
+         sch_growth) |> 
+  arrange(school_name) |> 
+  mutate(school_name = ifelse(
+    dpi_true_id %in% (make_mke_schools() |> 
+      filter(school_year == "2022-23") |> 
+      pull(dpi_true_id)), paste0(school_name, "*"), school_name
+  ))
 
 
 pp <- prof |> 
-  filter(school_year == "2021-22" & pa == "pa") |> 
+  filter(school_year == "2022-23" & pa) |> 
   select(dpi_true_id,
          test_subject,
          perc) |> 
@@ -418,12 +443,16 @@ tt <- left_join(t, pp) |>
 
 
 tt |> 
-  filter(!is.na(school_name)) |> 
-  kbl(booktabs = T, longtable = TRUE, caption = "School List with 2021-22 Data",
-      align = c("l", "l", "c", "c", "l", "c", "c", "c"),
-      col.names = c("School", "Sector", "Grades", "Enrollment", "Overall Rating", "Score", "ELA", "Math")) |> 
-  kable_styling(latex_options = c("striped", "HOLD_position", "repeat_header"), font_size = 8) |> 
-  column_spec(c(1,2,5), width = "10em") |> 
-  add_header_above(header = c(" " = 4, "Report Card" = 2, "Proficiency" = 2), bold = TRUE)
+  filter(!is.na(school_name)) |>
+  select(-school_year) |> 
+  kbl(booktabs = T, longtable = TRUE, caption = "School List with 2022-23 Data", 
+      align = c("l", "l", "c", "c", "c", "c", "c", "c"),
+      col.names = c("School", "Sector", "Grades", "Enrollment", "Overall Rating",
+                    "Score", "Achievement", "Growth", "ELA", "Math")) |> 
+  kable_styling(latex_options = c("striped", "HOLD_position", "repeat_header"), 
+                font_size = 7) |> 
+  column_spec(1, width = "9em") |> 
+  column_spec(c(2,5), width = "7em") |> 
+  add_header_above(header = c(" " = 4, "Report Card" = 4, "Proficiency" = 2), bold = TRUE)
 ```
 
