@@ -1,5 +1,5 @@
 ---
-title: "State Legislator School Profiles"
+title: "`r glue::glue('{params$house} School Profiles')`"
 subtitle: "`r glue::glue('{params$honorific} {params$representative}--District {params$district}')`"
 mainfont: Verdana
 sansfont: Georgia
@@ -8,6 +8,7 @@ params:
   district: 6
   representative: "La Tonya Johnson"
   honorific: "Senator"
+  house: "Senate"
 knitr:
   opts_chunk: 
     R.options:
@@ -49,7 +50,7 @@ rac <- read_rds("../data/rac_cl.rda")
 
 prof <- read_rds("../../000_data_temp/wi_all_school_prof_2023.rda")
 
-leges_sf <- read_rds("../data/leges_with_sf_2023.rda")
+leges_sf <- read_rds("../data/electeds_with_sf_2023.rda")
 
 wip10 <- read_rds("../data/wi_10_cities.rda")
 mke <- st_read("../../shapefiles/Milwaukee/City Limits/citylimit.shp")
@@ -177,25 +178,26 @@ make_data <- function(district) {
 
 ```{r}
 #| dev: png
+#| fig-height: 5
 #| fig-cap: District shown in blue, Milwaukee city limits shown in orange.
 
-if (params$honorific == "Representative") {
-  dist <- leges_sf |> 
-    filter(house == "Assembly" & district == params$district)
-} else {
-  dist <- leges_sf |> 
-    filter(house == "Senate" & district == params$district)
-}
+dist <- leges_sf |> 
+  filter(house == params$house & district == params$district)
 
+cent <- mke |> 
+  st_transform(crs = st_crs(dist)) |> 
+  st_centroid() |> 
+  st_coordinates()
 
-leaflet(dist) |> 
+leaflet(dist, options = leafletOptions(zoomSnap = .1)) |> 
   addMapboxTiles(style_id = "light-v11",
-                 username = "mapbox", scaling_factor = "0.5x") |> 
+                 username = "mapbox", 
+                 scaling_factor = "0.5x") |> 
   addPolygons(weight = 2) |> 
   addPolygons(data = st_transform(mke, crs = st_crs(dist)),
               color = cfc_orange, fillOpacity = .1,
               weight = 2) |> 
-  fitBounds(-88.1, 42.925, -87.9, 43.15)
+  setView(lng = cent[[1]], lat = cent[[2]], zoom = 12.4)
 
 # dist |> 
 #   ggplot() +
