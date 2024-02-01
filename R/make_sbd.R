@@ -2,15 +2,20 @@ library(tidyverse)
 library(sf)
 library(wisconsink12)
 
-leges_sf <- read_rds("data/electeds_with_sf_2023.rda")
+leges_sf <- read_rds("data/electeds_with_sf_2023.rda") |> 
+  filter(title != "Director")
 
 sbd <- st_read("data/schoolboarddistricts2022/SchoolboardDistricts2022.shp") |> 
   mutate(SCHOOL = as.character(SCHOOL))
+
+mke <- st_read("../shapefiles/Milwaukee/City Limits/citylimit.shp")
+mke <- st_transform(mke, st_crs(sbd))
 al <- tibble(
   SCHOOL = "At-Large",
-  geometry = st_union(sbd)
+  geometry = mke$geometry
 )
 sbdal <- bind_rows(sbd, al)
+
 sbds <- tribble(
   ~district, ~title, ~name,
   "1", "Alderwoman", "Marva Herndon",
