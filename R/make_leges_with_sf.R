@@ -45,7 +45,7 @@ lege_named_sf <- left_join(
   by = c("district", "house")
 )
 
-saveRDS(lege_named_sf, "data/leges_with_sf_2023.rda")
+saveRDS(lege_named_sf, "data/leges_with_sf_2023_1.rda")
 
 # Code from sra_pullout repo, not sure I'll need it here
 #

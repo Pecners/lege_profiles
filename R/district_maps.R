@@ -25,8 +25,7 @@ dist |>
 ggsave(filename = "../000_data_temp/jagler_district.png", background = "none")
 
 sens <- c(
-  "Vos",
-  "August"
+  
 )
 
 walk(sens, function(s) {

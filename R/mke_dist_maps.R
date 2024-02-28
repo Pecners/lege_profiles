@@ -21,11 +21,9 @@ mke_skinny |>
   geom_sf()
 
 
-leges_sf <- read_rds("data/leges_with_sf_2023.rda")
+leges_sf <- read_rds("data/leges_with_sf_2023_1.rda")
 
-these <- c("Dora Drake",
-           "Kalan Haywood",
-           "Sylvia Ortiz-Velez")
+these <- c("Lena Taylor")
 
 walk(these, function(t) {
   this_lege <- leges_sf |> 
@@ -35,6 +33,7 @@ walk(these, function(t) {
     ggplot() +
     geom_sf() +
     geom_sf(data = this_lege, fill = cfc_darkblue, color = NA) +
+    geom_sf(fill = NA, color = cfc_orange) +
     theme_void()
   
   ggsave(glue("maps/{this_lege$name}.png"), bg = "transparent")
