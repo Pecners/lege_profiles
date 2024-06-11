@@ -3,7 +3,7 @@
   \begin{center}
   \huge
   \setmainfont{Georgia}
-  \includegraphics[width=4cm,height=6cm]{../_extensions/cityforwardcollective/img/logo.png}\\[\bigskipamount]
+  \includegraphics[width=8cm,height=12cm]{../_extensions/cityforwardcollective/img/logo.png}\\[\bigskipamount]
 }
 \posttitle{\end{center}}
 $if(title)$
@@ -25,6 +25,9 @@ $else$
 \makeatother
 $endif$
 \subtitle{$subtitle$}
+$endif$
+$if(incumbent)$
+\subtitle{$incumbent$}
 $endif$
 \author{$for(author)$$author$$sep$ \and $endfor$}
 \date{$date$}
