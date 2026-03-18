@@ -4,36 +4,35 @@ library(tigris)
 library(rnaturalearth)
 library(sf)
 
-
 # state senate and assembly district shapefiles
-wi_ass <- st_read("data/Wisconsin_Assembly_Districts_(2024)/Wisconsin_Assembly_Districts_(2024).shp")
-wi_sen <- st_read("data/Wisconsin_Senate_Districts_(2024)/Wisconsin_Senate_Districts_(2024).shp")
+wi_ass <- st_read("data/WI_Assembly_Districts_2024/WI_Assembly_Districts_2024.shp")
+wi_sen <- st_read("data/WI_Senate_Districts_2024/WI_Senate_Districts_2024.shp")
 
 # Get lake michigan to erase from boundaries
-l <- ne_download(type = "lakes", category = "physical", scale = "large",
-                 returnclass = "sf") |> 
-  st_as_sf(crs = st_crs(states))
-
-lakes <- c("Lake Michigan")
-
-gl <- l %>%
-  filter(name %in% lakes) %>%
-  st_transform(crs = st_crs(wi_sen)) |> 
-  st_union()
+# l <- ne_download(type = "lakes", category = "physical", scale = "large",
+#                  returnclass = "sf") |> 
+#   st_as_sf(crs = st_crs(states))
+# 
+# lakes <- c("Lake Michigan")
+# 
+# gl <- l %>%
+#   filter(name %in% lakes) %>%
+#   st_transform(crs = st_crs(wi_sen)) |> 
+#   st_union()
 
 lege_sf <- wi_sen |> 
   transmute(
-    district = as.numeric(OBJECTID),
+    district = as.numeric(SEN2024),
     house = "Senate"
   ) |> 
-  st_difference(gl) |> 
+  # st_difference(gl) |> 
   bind_rows(
     wi_ass |> 
       transmute(
-        district = as.numeric(OBJECTID),
+        district = as.numeric(ASM2024),
         house = "Assembly"
-      ) |> 
-      st_difference(gl)
+      ) # |> 
+      # st_difference(gl)
   )
 
 # all leges
