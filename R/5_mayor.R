@@ -10,7 +10,7 @@ leges_sf <- read_rds("data/electeds_with_sf_2024.rda") |>
 may <- read_csv("data/electeds_june_2024.csv") |> 
   filter(house %in% "City of Milwaukee") |> 
   transmute(title,
-            district,
+            district = "City of Milwaukee",
             name,
             party_aff,
             official_phone,
