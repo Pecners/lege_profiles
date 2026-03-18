@@ -3,8 +3,11 @@ library(sf)
 library(wisconsink12)
 library(tigris)
 
-leges_sf <- read_rds("data/electeds_with_sf_2024.rda") |> 
-  filter(title != "Director")
+leges_sf <- read_rds("data/electeds_with_sf_2024.rda") 
+
+# not sure why i did this, to create the list without SBD?
+# commenting out because I want sbd's
+  # filter(title != "Director")
 
 mke_county <- counties(state = "WI", cb = TRUE, resolution = "500k") |> 
   filter(NAME == "Milwaukee") |> 
